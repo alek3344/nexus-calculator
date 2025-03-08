@@ -3,11 +3,7 @@ import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
-const Stack = createStackNavigator();
 
-const LoginScreen = ({ navigation }) => {
-  const [user, setUser] = useState('');
-  const [password, setPassword] = useState('');
 
   const handleLogin = () => {
     if (user === 'admin' && password === '1234') {
@@ -49,11 +45,6 @@ const MenuScreen = ({ navigation }) => {
     </View>
   );
 };
-
-const TasaInteresScreen = () => <View style={styles.container}><Text>Tasa de Interés</Text></View>;
-const InteresSimpleScreen = () => <View style={styles.container}><Text>Interés Simple</Text></View>;
-const InteresCompuestoScreen = () => <View style={styles.container}><Text>Interés Compuesto</Text></View>;
-const AnualidadesScreen = () => <View style={styles.container}><Text>Anualidades</Text></View>;
 
 export default function App() {
   return (
