@@ -6,7 +6,7 @@ import TasaInteres from './Screens/TasaInteres';
 import InteresSimple from './Screens/InteresSimple';
 import InteresCompuesto from './Screens/InteresCompuesto';
 import Anualidades from './Screens/Anualidades';
-import Login from './Screens/login';
+import Login from './Screens/Login';
 import MenuScreen from './componentes/MenuBoton';
 
 

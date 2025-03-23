@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#333', color: '#bbb', padding: 10, marginVertical: 10, borderRadius: 5 },
   periodContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
   periodInput: { flex: 1, marginHorizontal: 5, backgroundColor: '#333', color: '#bbb', padding: 10, borderRadius: 5 },
-  picker: { backgroundColor: '#333', color: 'white', marginVertical: 10 },
+  picker: { backgroundColor: '#333', color: 'white', marginVertical: 10, borderRadius: 5, padding:10 },
   resultadoContainer: { backgroundColor: '#222', padding: 15, marginTop: 20, borderRadius: 10 },
   resultText: { color: '#FFA500', fontSize: 16 },
   formulaText: { color: 'white', marginTop: 10 }
