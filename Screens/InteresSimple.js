@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Picker } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function InteresSimple() {
   const [calculo, setCalculo] = useState('interes');

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 
-const login = ({ navigation }) => {
+const Login = ({ navigation }) => {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
 
@@ -12,7 +12,7 @@ const login = ({ navigation }) => {
       Alert.alert('Error', 'Usuario o contraseña incorrectos');
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Nexus</Text>
@@ -80,5 +80,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default login;
+export default Login;
   
