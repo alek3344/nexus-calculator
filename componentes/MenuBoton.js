@@ -37,39 +37,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1e1e2d',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: 'center',
   },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  input: {
+    width: 250,
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#444',
+    borderRadius: 10,
+    backgroundColor: '#2e2e3e',
+    color: '#fff',
+    paddingHorizontal: 15,
+    marginBottom: 15,
   },
-  buttonContainer: {
-    width: '45%', // 2 por fila
-    aspectRatio: 1, // hace que sea cuadrado
-    backgroundColor: '#FFA500', // naranja visible
-    borderRadius: 15,
-    marginBottom: 20,
+  button: {
+    backgroundColor: '#ff5a5f',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginVertical: 5,
+    width: 200,
     alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5, // sombra en Android
-    shadowColor: '#000', // sombra en iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 14,
-    textAlign: 'center',
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });
