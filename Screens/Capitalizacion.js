@@ -93,7 +93,7 @@ const CapitalizacionCalculator = () => {
         onChangeText={setTasa}
       />
 
-      <view>
+      <View>
         <Text style={styles.label}>Tiempo (años)  </Text>
         <TextInput
           style={styles.input}
@@ -113,9 +113,9 @@ const CapitalizacionCalculator = () => {
           value={meses}
           onChangeText={setMeses}
         />
-      </view>
+      </View>
 
-      <view>
+      <View>
         <Text style={styles.label}>Diferida desde (años)  </Text>
         <TextInput
           style={styles.input}
@@ -135,7 +135,7 @@ const CapitalizacionCalculator = () => {
           value={inicioDiferidoMeses}
           onChangeText={setInicioDiferidoMeses}
         />
-      </view>
+      </View>
 
       <Text style={styles.label}>Tipo de capitalización</Text>
       <View style={styles.pickerContainer}>

@@ -1,53 +1,47 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 
+const screenWidth = Dimensions.get('window').width;
+const buttonSize = (screenWidth - 60) / 2; // 2 columnas, espacio lateral de 30
+
+const botones = [
+  { title: 'Tasa de Interes', screen: 'TasaInteres' },
+  { title: 'Interés Simple', screen: 'InteresSimple' },
+  { title: 'Interes Compuesto', screen: 'InteresCompuesto' },
+  { title: 'Anualidades', screen: 'Anualidades' },
+  { title: 'Gradiantes', screen: 'Gradiantes' },
+  { title: 'Tasa de Interes de Retorno', screen: 'TasaInteresRetorno' },
+  { title: 'Amortizacion', screen: 'Amortizacion' },
+  { title: 'Capitalizacion', screen: 'Capitalizacion' },
+];
 
 const MenuScreen = ({ navigation }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Menú de Cálculos</Text>
-      <MenuButton title="Tasa de Interes" onPress={() => navigation.navigate('TasaInteres')} />
-      <MenuButton title="Interés Simple" onPress={() => navigation.navigate('InteresSimple')} />
-      <MenuButton title="Interes Compuesto" onPress={() => navigation.navigate('InteresCompuesto')} />
-      <MenuButton title="Anualidades" onPress={() => navigation.navigate('Anualidades')} />
-      <MenuButton title="Gradiantes" onPress={() => navigation.navigate('Gradiantes')} />
-      <MenuButton title="Tasa de Interes de Retorno" onPress={() => navigation.navigate('TasaInteresRetorno')} />
-      <MenuButton title="Amortizacion" onPress={() => navigation.navigate('Amortizacion')} />
-      <MenuButton title="Capitalizacion" onPress={() => navigation.navigate('Capitalizacion')} />
-    </View>
-  );
-};
-
-const MenuButton = ({ title, onPress }) => {
-  return (
     <ScrollView contentContainerStyle={styles.container}>
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{title}</Text>
-    </TouchableOpacity>
+      <Text style={styles.title}>Menú de Cálculos</Text>
+      <View style={styles.gridContainer}>
+        {botones.map((btn, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.button}
+            onPress={() => navigation.navigate(btn.screen)}
+          >
+            <Text style={styles.buttonText}>{btn.title}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </ScrollView>
   );
 };
 
-const botones = [
-  { label: 'Tasa', icon: require('../assets/images.png') }
-];
-
-
-// Exportamos MenuScreen
 export default MenuScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    paddingVertical: 30,
+    paddingHorizontal: 20,
     backgroundColor: '#1e1e2d',
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,
@@ -56,30 +50,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  input: {
-    width: 250,
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 10,
-    backgroundColor: '#2e2e3e',
-    color: '#fff',
-    paddingHorizontal: 15,
-    marginBottom: 15,
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   button: {
+    width: buttonSize,
+    height: buttonSize,
     backgroundColor: '#ff5a5f',
-    paddingVertical: 60,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    marginVertical: 5,
-    width: 200,
+    borderRadius: 12,
+    marginBottom: 20,
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
+    textAlign: 'center',
     fontWeight: 'bold',
   },
 });
-
