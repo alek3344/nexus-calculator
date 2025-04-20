@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native';
+
 
 const MenuScreen = ({ navigation }) => {
   return (
@@ -19,9 +21,11 @@ const MenuScreen = ({ navigation }) => {
 
 const MenuButton = ({ title, onPress }) => {
   return (
+    <ScrollView contentContainerStyle={styles.container}>
     <TouchableOpacity style={styles.button} onPress={onPress}>
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
+    </ScrollView>
   );
 };
 
@@ -39,6 +43,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e1e2d',
     alignItems: "center",
     justifyContent: "center",
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 28,
@@ -60,7 +69,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#ff5a5f',
-    paddingVertical: 12,
+    paddingVertical: 60,
     paddingHorizontal: 30,
     borderRadius: 10,
     marginVertical: 5,
