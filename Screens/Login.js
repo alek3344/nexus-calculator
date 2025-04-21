@@ -9,16 +9,42 @@ import {
   ScrollView,
 } from 'react-native';
 
+const usuariosSimulados = [
+  { cedula: '12345678', password: '1234' }, 
+];
 
 const Login = ({ navigation }) => {
-  const [user, setUser] = useState('');
+  const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (user === 'admin' && password === '1234') {
-      navigation.navigate('Menu'); // asegúrate que el nombre coincida con el definido en App.js
+    const userFound = usuariosSimulados.find(
+      (u) => u.cedula === cedula && u.password === password
+    );
+    if (userFound) {
+      navigation.navigate('Menu');
     } else {
-      Alert.alert('Error', 'Usuario o contraseña incorrectos');
+      Alert.alert('Error', 'Cédula o contraseña incorrecta');
+    }
+  };
+
+  const handleRegister = () => {
+    const existe = usuariosSimulados.find((u) => u.cedula === cedula);
+    if (existe) {
+      Alert.alert('Error', 'Esta cédula ya está registrada');
+    } else {
+      usuariosSimulados.push({ cedula, password });
+      Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión');
+    }
+  };
+
+  const handleRecovery = () => {
+    const user = usuariosSimulados.find((u) => u.cedula === cedula);
+    if (user) {
+      Alert.alert('Recuperación', `Tu contraseña es: ${user.password}`);
+      // Aquí puedes usar un sistema más seguro, como correo o verificación
+    } else {
+      Alert.alert('Error', 'Cédula no registrada');
     }
   };
 
@@ -26,13 +52,16 @@ const Login = ({ navigation }) => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Nexus</Text>
+
         <TextInput
           style={styles.input}
-          placeholder="Usuario"
+          placeholder="Cédula"
           placeholderTextColor="#ddd"
-          value={user}
-          onChangeText={setUser}
+          keyboardType="numeric"
+          value={cedula}
+          onChangeText={setCedula}
         />
+
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
@@ -40,21 +69,23 @@ const Login = ({ navigation }) => {
           secureTextEntry
           value={password}
           onChangeText={setPassword}
-          onSubmitEditing={handleLogin}
-          returnKeyType="done"
         />
+
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Ingresar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.altButton} onPress={handleRegister}>
+          <Text style={styles.altButtonText}>Registrarse</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.altButton} onPress={handleRecovery}>
+          <Text style={styles.altButtonText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
   );
 };
-
-const botones = [
-  { label: 'Tasa', icon: require('../assets/images.png') }
-];
-
 
 export default Login;
 
@@ -67,7 +98,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   title: {
@@ -101,5 +132,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  altButton: {
+    marginTop: 10,
+  },
+  altButtonText: {
+    color: '#4db8ff',
+    textDecorationLine: 'underline',
   },
 });
