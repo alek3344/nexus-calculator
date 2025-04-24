@@ -10,10 +10,11 @@ import {
   Image,
 } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { app } from '../Config/firebaseConfig';
+import * as Crypto from 'expo-crypto';
 
-const usuariosSimulados = [
-  { cedula: '12345678', password: '1234', huellasRegistradas: true },
-];
+const db = getFirestore(app);
 
 const Login = ({ navigation }) => {
   const [cedula, setCedula] = useState('');
@@ -28,26 +29,42 @@ const Login = ({ navigation }) => {
     })();
   }, []);
 
-  const handleLogin = () => {
-    const userFound = usuariosSimulados.find(
-      (u) => u.cedula === cedula && u.password === password
-    );
-    if (userFound) {
-      navigation.navigate('Menu');
-    } else {
-      Alert.alert('Error', 'Cédula o contraseña incorrecta');
+  const handleLogin = async () => {
+    if (!cedula || !password) {
+      Alert.alert('Error', 'Debes ingresar la cédula y la contraseña');
+      return;
+    }
+  
+    try {
+      const usuariosRef = collection(db, 'usuarios');
+      const q = query(usuariosRef, where('cedula', '==', cedula));
+      const snapshot = await getDocs(q);
+  
+      if (snapshot.empty) {
+        Alert.alert('Error', 'Cédula o contraseña incorrecta');
+        return;
+      }
+  
+      const userDoc = snapshot.docs[0];
+      const userData = userDoc.data();
+  
+      const inputPasswordHash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        password
+      );
+  
+      if (inputPasswordHash === userData.password) {
+        navigation.navigate('Menu');
+      } else {
+        Alert.alert('Error', 'Cédula o contraseña incorrecta');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo conectar con el servidor');
+      console.error(error);
     }
   };
+  
 
-  const handleRegister = () => {
-    const existe = usuariosSimulados.find((u) => u.cedula === cedula);
-    if (existe) {
-      Alert.alert('Error', 'Esta cédula ya está registrada');
-    } else {
-      usuariosSimulados.push({ cedula, password, huellasRegistradas: false });
-      Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión');
-    }
-  };
 
   const handleRecovery = () => {
     const user = usuariosSimulados.find((u) => u.cedula === cedula);
@@ -188,7 +205,7 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
         )}
         
-        <TouchableOpacity style={styles.altButton} onPress={handleRegister}>
+        <TouchableOpacity style={styles.altButton} onPress={() => navigation.navigate('Register')}>
           <Text style={styles.altButtonText}>Registrarse</Text>
         </TouchableOpacity>
         

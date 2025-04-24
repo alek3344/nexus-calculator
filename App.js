@@ -14,6 +14,7 @@ import Gradiantes from './Screens/Gradiantes';
 import TasaInteresRetorno from './Screens/Tasa_interes_retorno';
 import Capitalizacion from './Screens/Capitalizacion';
 import Amortizacion from './Screens/Amortizacion';
+import Register from './Screens/Register';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +57,7 @@ export default function App() {
         <Stack.Screen name="TasaInteresRetorno" component={TasaInteresRetorno} />
         <Stack.Screen name="Capitalizacion" component={Capitalizacion} />
         <Stack.Screen name="Amortizacion" component={Amortizacion} />
+        <Stack.Screen name="Register" component={Register} />
       </Stack.Navigator>
     </NavigationContainer>
   );
