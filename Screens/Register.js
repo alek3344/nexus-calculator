@@ -4,56 +4,62 @@ import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebas
 import { app } from '../Config/firebaseConfig';
 import * as Crypto from 'expo-crypto';
 
-
 const db = getFirestore(app);
 
 const RegisterScreen = ({ navigation }) => {
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [saldo, setSaldo] = useState(''); // ← NUEVO estado para saldo
 
   const handleRegister = async () => {
-    if (!cedula || !password || !confirmPassword) {
+    if (!cedula || !password || !confirmPassword || !saldo) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
-  
+
     if (!/^\d{10}$/.test(cedula)) {
       Alert.alert('Error', 'La cédula debe contener exactamente 10 dígitos numéricos');
       return;
     }
-  
+
     if (password.length < 8) {
       Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres');
       return;
     }
-  
+
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
-  
+
+    if (isNaN(parseFloat(saldo)) || parseFloat(saldo) < 0) {
+      Alert.alert('Error', 'Saldo inválido. Debe ser un número positivo');
+      return;
+    }
+
     try {
       const usuariosRef = collection(db, 'usuarios');
       const q = query(usuariosRef, where('cedula', '==', cedula));
       const snapshot = await getDocs(q);
-  
+
       if (!snapshot.empty) {
         Alert.alert('Error', 'Esa cédula ya está registrada');
         return;
       }
-  
+
       const hashedPassword = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         password
       );
-  
+
       await addDoc(usuariosRef, {
         cedula,
         password: hashedPassword,
+        saldo: parseFloat(saldo), // ← Guarda el saldo como número
         huellasRegistradas: false,
       });
-  
+
       Alert.alert('Éxito', 'Usuario registrado correctamente');
       navigation.goBack();
     } catch (error) {
@@ -65,7 +71,7 @@ const RegisterScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
-      
+
       <TextInput
         placeholder="Cédula"
         placeholderTextColor="#ccc"
@@ -75,7 +81,7 @@ const RegisterScreen = ({ navigation }) => {
         onChangeText={setCedula}
         style={styles.input}
       />
-      
+
       <TextInput
         placeholder="Contraseña"
         placeholderTextColor="#ccc"
@@ -84,13 +90,22 @@ const RegisterScreen = ({ navigation }) => {
         onChangeText={setPassword}
         style={styles.input}
       />
-      
+
       <TextInput
         placeholder="Confirmar contraseña"
         placeholderTextColor="#ccc"
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
+        style={styles.input}
+      />
+
+      <TextInput
+        placeholder="Saldo inicial"
+        placeholderTextColor="#ccc"
+        keyboardType="numeric"
+        value={saldo}
+        onChangeText={setSaldo}
         style={styles.input}
       />
 

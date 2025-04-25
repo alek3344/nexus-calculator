@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { app } from '../Config/firebaseConfig';
+import * as Crypto from 'expo-crypto';
 
 const usuariosSimulados = [
   { cedula: '12345678', password: '1234', huellasRegistradas: true },
@@ -17,30 +10,53 @@ const usuariosSimulados = [
 const Login = ({ navigation }) => {
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
+  const [saldo, setSaldo] = useState('');
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   
-  // Verificar si el dispositivo soporta autenticación biométrica
   useEffect(() => {
     (async () => {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       setIsBiometricSupported(compatible);
       
       if (compatible) {
-        // También verificamos si hay huellas registradas en el dispositivo
         const enrolled = await LocalAuthentication.isEnrolledAsync();
         console.log("¿Huellas registradas en el dispositivo?", enrolled);
       }
     })();
   }, []);
 
-  const handleLogin = () => {
-    const userFound = usuariosSimulados.find(
-      (u) => u.cedula === cedula && u.password === password
-    );
-    if (userFound) {
-      navigation.navigate('Menu');
-    } else {
-      Alert.alert('Error', 'Cédula o contraseña incorrecta');
+  const handleLogin = async () => {
+    if (!cedula || !password) {
+      Alert.alert('Error', 'Debes ingresar la cédula y la contraseña');
+      return;
+    }
+  
+    try {
+      const usuariosRef = collection(db, 'usuarios');
+      const q = query(usuariosRef, where('cedula', '==', cedula));
+      const snapshot = await getDocs(q);
+  
+      if (snapshot.empty) {
+        Alert.alert('Error', 'Cédula o contraseña incorrecta');
+        return;
+      }
+  
+      const userDoc = snapshot.docs[0];
+      const userData = userDoc.data();
+  
+      const inputPasswordHash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        password
+      );
+  
+      if (inputPasswordHash === userData.password) {
+        navigation.navigate('Menu');
+      } else {
+        Alert.alert('Error', 'Cédula o contraseña incorrecta');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo conectar con el servidor');
+      console.error(error);
     }
   };
 
@@ -49,7 +65,7 @@ const Login = ({ navigation }) => {
     if (existe) {
       Alert.alert('Error', 'Esta cédula ya está registrada');
     } else {
-      usuariosSimulados.push({ cedula, password, huellasRegistradas: false });
+      usuariosSimulados.push({ cedula, password, saldo, huellasRegistradas: false });
       Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión');
     }
   };
@@ -58,16 +74,13 @@ const Login = ({ navigation }) => {
     const user = usuariosSimulados.find((u) => u.cedula === cedula);
     if (user) {
       Alert.alert('Recuperación', `Tu contraseña es: ${user.password}`);
-      // Aquí puedes usar un sistema más seguro, como correo o verificación
     } else {
       Alert.alert('Error', 'Cédula no registrada');
     }
   };
 
-  // Función para autenticación con huella digital
   const handleBiometricAuth = async () => {
     try {
-      // Verificar si hay huellas registradas en el dispositivo
       const biometricRecords = await LocalAuthentication.isEnrolledAsync();
       if (!biometricRecords) {
         Alert.alert(
@@ -77,13 +90,11 @@ const Login = ({ navigation }) => {
         return;
       }
 
-      // Si no se ha ingresado la cédula, solicitar
       if (!cedula) {
         Alert.alert('Ingrese cédula', 'Debes ingresar tu cédula para usar la autenticación biométrica');
         return;
       }
 
-      // Verificar si el usuario existe y tiene huellas registradas en la app
       const user = usuariosSimulados.find(u => u.cedula === cedula);
       if (!user) {
         Alert.alert('Error', 'Usuario no encontrado');
@@ -95,7 +106,6 @@ const Login = ({ navigation }) => {
         return;
       }
 
-      // Iniciar la autenticación biométrica - ESTE ES EL PASO CLAVE
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Autenticación con huella digital',
         cancelLabel: 'Cancelar',
@@ -109,7 +119,6 @@ const Login = ({ navigation }) => {
         Alert.alert('Autenticación exitosa', 'Bienvenido');
         navigation.navigate('Menu');
       } else {
-        // Solo mostrar alerta si no se canceló deliberadamente
         if (!result.error || result.error !== 'user_cancel') {
           Alert.alert('Autenticación fallida', 'Huella no reconocida. Intente nuevamente.');
         }
@@ -120,21 +129,17 @@ const Login = ({ navigation }) => {
     }
   };
 
-  // Función para registrar huella digital
   const handleRegisterBiometric = async () => {
-    // Verificar si el dispositivo soporta autenticación biométrica
     if (!isBiometricSupported) {
       Alert.alert('No soportado', 'Tu dispositivo no soporta autenticación biométrica');
       return;
     }
 
-    // Si no se ha ingresado la cédula o contraseña, solicitar
     if (!cedula || !password) {
       Alert.alert('Datos incompletos', 'Debes ingresar tu cédula y contraseña para registrar tu huella');
       return;
     }
 
-    // Verificar credenciales antes de registrar huella
     const userFound = usuariosSimulados.find(
       (u) => u.cedula === cedula && u.password === password
     );
@@ -145,7 +150,6 @@ const Login = ({ navigation }) => {
     }
 
     try {
-      // Verificamos que el usuario tenga huellas registradas en el dispositivo
       const biometricRecords = await LocalAuthentication.isEnrolledAsync();
       if (!biometricRecords) {
         Alert.alert(
@@ -155,7 +159,6 @@ const Login = ({ navigation }) => {
         return;
       }
 
-      // Para confirmar que la huella es del usuario, pedimos autenticación
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Verifica tu identidad con tu huella',
         cancelLabel: 'Cancelar',
@@ -164,7 +167,6 @@ const Login = ({ navigation }) => {
       });
 
       if (result.success) {
-        // Simulamos el registro de la huella para la aplicación
         const index = usuariosSimulados.findIndex(u => u.cedula === cedula);
         if (index !== -1) {
           usuariosSimulados[index].huellasRegistradas = true;
@@ -203,6 +205,15 @@ const Login = ({ navigation }) => {
           value={password}
           onChangeText={setPassword}
         />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Saldo inicial"
+          placeholderTextColor="#ddd"
+          keyboardType="numeric"
+          value={saldo}
+          onChangeText={setSaldo}
+        />
         
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Ingresar</Text>
@@ -214,7 +225,7 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
         )}
         
-        <TouchableOpacity style={styles.altButton} onPress={handleRegister}>
+        <TouchableOpacity style={styles.altButton} onPress={() => navigation.navigate('Register')}>
           <Text style={styles.altButtonText}>Registrarse</Text>
         </TouchableOpacity>
         
