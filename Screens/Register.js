@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { app } from '../Config/firebaseConfig';
 import * as Crypto from 'expo-crypto';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 const db = getFirestore(app);
 
@@ -10,56 +11,71 @@ const RegisterScreen = ({ navigation }) => {
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [saldo, setSaldo] = useState(''); // ← NUEVO estado para saldo
+  const [saldo, setSaldo] = useState('');
 
   const handleRegister = async () => {
     if (!cedula || !password || !confirmPassword || !saldo) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
-
+  
     if (!/^\d{10}$/.test(cedula)) {
       Alert.alert('Error', 'La cédula debe contener exactamente 10 dígitos numéricos');
       return;
     }
-
+  
     if (password.length < 8) {
       Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres');
       return;
     }
-
+  
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
-
+  
     if (isNaN(parseFloat(saldo)) || parseFloat(saldo) < 0) {
       Alert.alert('Error', 'Saldo inválido. Debe ser un número positivo');
       return;
     }
-
+  
     try {
       const usuariosRef = collection(db, 'usuarios');
       const q = query(usuariosRef, where('cedula', '==', cedula));
       const snapshot = await getDocs(q);
-
+  
       if (!snapshot.empty) {
         Alert.alert('Error', 'Esa cédula ya está registrada');
         return;
       }
-
+  
       const hashedPassword = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         password
       );
-
+  
+      // Verifica si el dispositivo soporta autenticación biométrica
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+  
+      let huellaRegistrada = false;
+      if (compatible && enrolled) {
+        const biometricAuth = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Registrar huella para acceso biométrico',
+        });
+  
+        if (biometricAuth.success) {
+          huellaRegistrada = true; // Marcamos como registrado biométricamente
+        }
+      }
+  
       await addDoc(usuariosRef, {
         cedula,
         password: hashedPassword,
-        saldo: parseFloat(saldo), // ← Guarda el saldo como número
-        huellasRegistradas: false,
+        saldo: parseFloat(saldo),
+        huellasRegistradas: huellaRegistrada,
       });
-
+  
       Alert.alert('Éxito', 'Usuario registrado correctamente');
       navigation.goBack();
     } catch (error) {
