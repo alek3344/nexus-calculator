@@ -7,14 +7,12 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
-  Image,
 } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { app } from '../Config/firebaseConfig';
-import * as Crypto from 'expo-crypto';
 
-const db = getFirestore(app);
+const usuariosSimulados = [
+  { cedula: '12345678', password: '1234', huellasRegistradas: true },
+];
 
 const Login = ({ navigation }) => {
   const [cedula, setCedula] = useState('');
@@ -26,45 +24,35 @@ const Login = ({ navigation }) => {
     (async () => {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       setIsBiometricSupported(compatible);
+      
+      if (compatible) {
+        // También verificamos si hay huellas registradas en el dispositivo
+        const enrolled = await LocalAuthentication.isEnrolledAsync();
+        console.log("¿Huellas registradas en el dispositivo?", enrolled);
+      }
     })();
   }, []);
 
-  const handleLogin = async () => {
-    if (!cedula || !password) {
-      Alert.alert('Error', 'Debes ingresar la cédula y la contraseña');
-      return;
-    }
-  
-    try {
-      const usuariosRef = collection(db, 'usuarios');
-      const q = query(usuariosRef, where('cedula', '==', cedula));
-      const snapshot = await getDocs(q);
-  
-      if (snapshot.empty) {
-        Alert.alert('Error', 'Cédula o contraseña incorrecta');
-        return;
-      }
-  
-      const userDoc = snapshot.docs[0];
-      const userData = userDoc.data();
-  
-      const inputPasswordHash = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        password
-      );
-  
-      if (inputPasswordHash === userData.password) {
-        navigation.navigate('Menu');
-      } else {
-        Alert.alert('Error', 'Cédula o contraseña incorrecta');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo conectar con el servidor');
-      console.error(error);
+  const handleLogin = () => {
+    const userFound = usuariosSimulados.find(
+      (u) => u.cedula === cedula && u.password === password
+    );
+    if (userFound) {
+      navigation.navigate('Menu');
+    } else {
+      Alert.alert('Error', 'Cédula o contraseña incorrecta');
     }
   };
-  
 
+  const handleRegister = () => {
+    const existe = usuariosSimulados.find((u) => u.cedula === cedula);
+    if (existe) {
+      Alert.alert('Error', 'Esta cédula ya está registrada');
+    } else {
+      usuariosSimulados.push({ cedula, password, huellasRegistradas: false });
+      Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión');
+    }
+  };
 
   const handleRecovery = () => {
     const user = usuariosSimulados.find((u) => u.cedula === cedula);
@@ -78,49 +66,56 @@ const Login = ({ navigation }) => {
 
   // Función para autenticación con huella digital
   const handleBiometricAuth = async () => {
-    // Verificar si hay huellas registradas en el dispositivo
-    const biometricRecords = await LocalAuthentication.isEnrolledAsync();
-    if (!biometricRecords) {
-      Alert.alert(
-        'No hay huellas registradas', 
-        'Debes registrar al menos una huella en tu dispositivo para usar esta función'
-      );
-      return;
-    }
-
-    // Si no se ha ingresado la cédula, solicitar
-    if (!cedula) {
-      Alert.alert('Ingrese cédula', 'Debes ingresar tu cédula para usar la autenticación biométrica');
-      return;
-    }
-
-    // Verificar si el usuario existe y tiene huellas registradas en la app
-    const user = usuariosSimulados.find(u => u.cedula === cedula);
-    if (!user) {
-      Alert.alert('Error', 'Usuario no encontrado');
-      return;
-    }
-    
-    if (!user.huellasRegistradas) {
-      Alert.alert('Error', 'Este usuario no tiene huellas registradas. Por favor, registre su huella primero.');
-      return;
-    }
-
     try {
-      // Iniciar la autenticación biométrica
+      // Verificar si hay huellas registradas en el dispositivo
+      const biometricRecords = await LocalAuthentication.isEnrolledAsync();
+      if (!biometricRecords) {
+        Alert.alert(
+          'No hay huellas registradas', 
+          'Debes registrar al menos una huella en tu dispositivo para usar esta función'
+        );
+        return;
+      }
+
+      // Si no se ha ingresado la cédula, solicitar
+      if (!cedula) {
+        Alert.alert('Ingrese cédula', 'Debes ingresar tu cédula para usar la autenticación biométrica');
+        return;
+      }
+
+      // Verificar si el usuario existe y tiene huellas registradas en la app
+      const user = usuariosSimulados.find(u => u.cedula === cedula);
+      if (!user) {
+        Alert.alert('Error', 'Usuario no encontrado');
+        return;
+      }
+      
+      if (!user.huellasRegistradas) {
+        Alert.alert('Error', 'Este usuario no tiene huellas registradas en la aplicación. Por favor, registre su huella primero.');
+        return;
+      }
+
+      // Iniciar la autenticación biométrica - ESTE ES EL PASO CLAVE
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Autenticación con huella digital',
         cancelLabel: 'Cancelar',
-        disableDeviceFallback: true,
+        fallbackLabel: 'Usar contraseña',
+        disableDeviceFallback: false,
       });
+
+      console.log("Resultado de autenticación biométrica:", result);
 
       if (result.success) {
         Alert.alert('Autenticación exitosa', 'Bienvenido');
         navigation.navigate('Menu');
       } else {
-        Alert.alert('Autenticación fallida', 'Intente nuevamente');
+        // Solo mostrar alerta si no se canceló deliberadamente
+        if (!result.error || result.error !== 'user_cancel') {
+          Alert.alert('Autenticación fallida', 'Huella no reconocida. Intente nuevamente.');
+        }
       }
     } catch (error) {
+      console.error("Error en autenticación biométrica:", error);
       Alert.alert('Error', 'No se pudo autenticar: ' + error.message);
     }
   };
@@ -155,19 +150,33 @@ const Login = ({ navigation }) => {
       if (!biometricRecords) {
         Alert.alert(
           'No hay huellas registradas', 
-          'Debes registrar al menos una huella en la configuración de tu dispositivo'
+          'Debes registrar al menos una huella en la configuración de tu dispositivo antes de usarla en la app'
         );
         return;
       }
 
-      // Simulamos el registro de la huella para la aplicación
-      // En un escenario real, guardaríamos algún token seguro asociado a la huella
-      const index = usuariosSimulados.findIndex(u => u.cedula === cedula);
-      if (index !== -1) {
-        usuariosSimulados[index].huellasRegistradas = true;
-        Alert.alert('Éxito', 'Huella registrada correctamente para este usuario');
+      // Para confirmar que la huella es del usuario, pedimos autenticación
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Verifica tu identidad con tu huella',
+        cancelLabel: 'Cancelar',
+        fallbackLabel: 'Usar contraseña',
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        // Simulamos el registro de la huella para la aplicación
+        const index = usuariosSimulados.findIndex(u => u.cedula === cedula);
+        if (index !== -1) {
+          usuariosSimulados[index].huellasRegistradas = true;
+          Alert.alert('Éxito', 'Huella registrada correctamente para este usuario');
+        }
+      } else {
+        if (!result.error || result.error !== 'user_cancel') {
+          Alert.alert('Error', 'No se pudo verificar tu huella');
+        }
       }
     } catch (error) {
+      console.error("Error al registrar huella:", error);
       Alert.alert('Error', 'No se pudo registrar la huella: ' + error.message);
     }
   };
@@ -205,7 +214,7 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
         )}
         
-        <TouchableOpacity style={styles.altButton} onPress={() => navigation.navigate('Register')}>
+        <TouchableOpacity style={styles.altButton} onPress={handleRegister}>
           <Text style={styles.altButtonText}>Registrarse</Text>
         </TouchableOpacity>
         
