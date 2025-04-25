@@ -15,6 +15,9 @@ import TasaInteresRetorno from './Screens/Tasa_interes_retorno';
 import Capitalizacion from './Screens/Capitalizacion';
 import Amortizacion from './Screens/Amortizacion';
 import Register from './Screens/Register';
+import NewPrestamo from './Screens/NewPrestamo';
+import ProcesoPrestamo from './Screens/ProcesoPrestamo';
+
 
 const Stack = createStackNavigator();
 
@@ -58,6 +61,8 @@ export default function App() {
         <Stack.Screen name="Capitalizacion" component={Capitalizacion} />
         <Stack.Screen name="Amortizacion" component={Amortizacion} />
         <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="NewPrestamo" component={NewPrestamo} />
+        <Stack.Screen name="ProcesoPrestamo" component={ProcesoPrestamo} />
       </Stack.Navigator>
     </NavigationContainer>
   );

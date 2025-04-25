@@ -17,8 +17,8 @@ const botonesCalculos = [
 ];
 
 const botonesPrestamos = [
-  { title: 'Nuevo Préstamo', screen: 'NuevoPrestamo' },
-  { title: 'Préstamos en Proceso', screen: 'PrestamosEnProceso' },
+  { title: 'Nuevo Préstamo', screen: 'NewPrestamo' },
+  { title: 'Préstamos en Proceso', screen: 'ProcesoPrestamo' },
 ];
 
 const MenuScreen = ({ navigation }) => {

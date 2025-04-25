@@ -12,6 +12,7 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saldo, setSaldo] = useState('');
+  
 
   const handleRegister = async () => {
     if (!cedula || !password || !confirmPassword || !saldo) {
@@ -57,7 +58,14 @@ const RegisterScreen = ({ navigation }) => {
       // Verifica si el dispositivo soporta autenticación biométrica
       const compatible = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
-  
+      navigation.navigate('NewPrestamo', { cedula, saldo });
+
+      navigation.navigate('NewPrestamo', {
+        cedula,
+        saldo: parseFloat(saldo),
+      });
+
+      
       let huellaRegistrada = false;
       if (compatible && enrolled) {
         const biometricAuth = await LocalAuthentication.authenticateAsync({
